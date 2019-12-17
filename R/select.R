@@ -1,35 +1,7 @@
 rm(list = ls())
 set.seed(201912)
 
-select <- function(X,
-                   y,
-                   poolSize = round(2 * ncol(X)),
-                   objectiveFunction = stats::AIC,
-                   mutationRate = 0.01,
-                   mutationRateByEnd = NULL,
-                   maxIter = 100,
-                   minIter = maxIter / 5,
-                   regressionType = "gaussian",
-                   oneParentRandom = FALSE,
-                   diversityCutoff = 1 / poolSize) {
-  allData <- cbind(y, X)
-  chromoSize <- ncol(X)
-  pool <- init(poolSize, chromoSize)
-  for (i in 1:maxIter) {
-    objVal <- getObjective(X, y, pool, objectiveFunction, regressionType)
-    fitness <- getFitness(objVal)
-    pool <- updatePool(pool, fitness, oneParentRandom, mutationRate, i)
-    if (convergeCheck(pool, i, minIter, diversityCutoff)) {
-      cat("number of iterations to achieve converge is", i, "\n")
-      break
-    }
-  }
-  majorChromo <- getMajorChromo(pool)
-  cat("Variable selected are", colnames(X)[majorChromo], "\n")
-  cat(majorChromo, "\n")
-  return(majorChromo)
 
-}
 init <- function(poolSize, chromSize) {
   return(matrix(sample(c(TRUE, FALSE), chromSize * poolSize, replace = TRUE), nrow = poolSize, byrow = TRUE))
 }
@@ -54,17 +26,12 @@ getFitness <- function(objectiveVal) {
   return(2*r/(poolSize*(poolSize+1)))
 }
 
-updatePool <- function(pool, fitness, oneParentRandom, mutationRate, mutationRateByEnd, iterCounter) {
-  poolSize <- nrow(pool)
-  chromoSize <- ncol(pool)
-  childVector <- rankSelect(pool, fitness, oneParentRandom)
-  if (is.null(mutationRateByEnd)) {
-    childVector <- mutate(childVector, mutationRate)
-  } else {
-    childVector <- mutate(childVector, currMutationRate(mutationRate, mutationRateByEnd, i))
-  }
-
-  return(matrix(childVector[1:(poolSize*chromoSize)], nrow = poolSize, byrow = TRUE))
+crossover <- function(parents) {
+  chromoSize <- ncol(parents)
+  splitPoint <- sample(2:chromoSize, 1)
+  firstChild <- c(parents[1,1:(splitPoint-1)], parents[2,splitPoint:chromoSize])
+  secondChild <- c(parents[2,1:(splitPoint-1)], parents[1,splitPoint:chromoSize])
+  return(c(firstChild, secondChild))
 }
 
 rankSelect <- function(pool, fitness, oneParentRandom) {
@@ -88,12 +55,8 @@ rankSelect <- function(pool, fitness, oneParentRandom) {
   return(childVector)
 }
 
-crossover <- function(parents) {
-  chromoSize <- ncol(parents)
-  splitPoint <- sample(2:chromoSize, 1)
-  firstChild <- c(parents[1,1:(splitPoint-1)], parents[2,splitPoint:chromoSize])
-  secondChild <- c(parents[2,1:(splitPoint-1)], parents[1,splitPoint:chromoSize])
-  return(c(firstChild, secondChild))
+currMutationRate <- function(mutationRate, maxMutationRate, iterCounter, maxIter) {
+  return(mutationRate + (iterCounter - 1) / maxIter * (maxMutationRate - mutationRate))
 }
 
 mutate <- function(childVector, mutationRate) {
@@ -102,9 +65,19 @@ mutate <- function(childVector, mutationRate) {
   return(childVector)
 }
 
-currMutationRate <- function(mutationRate, mutationRateByEnd, iterCounter) {
+updatePool <- function(pool, fitness, oneParentRandom, mutationRate, maxMutationRate, iterCounter, maxIter) {
+  poolSize <- nrow(pool)
+  chromoSize <- ncol(pool)
+  childVector <- rankSelect(pool, fitness, oneParentRandom)
+  if (is.null(maxMutationRate)) {
+    childVector <- mutate(childVector, mutationRate)
+  } else {
+    childVector <- mutate(childVector, currMutationRate(mutationRate, maxMutationRate, iterCounter, maxIter))
+  }
 
+  return(matrix(childVector[1:(poolSize*chromoSize)], nrow = poolSize, byrow = TRUE))
 }
+
 
 convergeCheck <- function(pool, currentIterCount, minIter, diversityCutoff) {
   if (currentIterCount >= minIter & nrow(unique(pool)) / nrow(pool) <= diversityCutoff) {
@@ -120,8 +93,38 @@ getMajorChromo <- function(pool) {
   for (i in 1:nrow(uniqueChromo)) {
     numEachChromo[i] <- sum(apply(pool, 1, function(poolRow) {return(all(poolRow == uniqueChromo[i,]))}))
   }
-  majorChromoIndex <- which(numEachChromo == max(numEachChromo))
+  majorChromoIndex <- which(numEachChromo == max(numEachChromo))[1]
   return(uniqueChromo[majorChromoIndex,])
+}
+
+select <- function(X,
+                   y,
+                   poolSize = round(2 * ncol(X)),
+                   objectiveFunction = stats::AIC,
+                   mutationRate = 0.01,
+                   maxMutationRate = NULL,
+                   maxIter = 100,
+                   minIter = maxIter / 3,
+                   regressionType = "gaussian",
+                   oneParentRandom = FALSE,
+                   diversityCutoff = max(0.05, 1 / poolSize)) {
+  allData <- cbind(y, X)
+  chromoSize <- ncol(X)
+  pool <- init(poolSize, chromoSize)
+  for (i in 1:maxIter) {
+    objVal <- getObjective(X, y, pool, objectiveFunction, regressionType)
+    fitness <- getFitness(objVal)
+    pool <- updatePool(pool, fitness, oneParentRandom, mutationRate, maxMutationRate, i, maxIter)
+    if (convergeCheck(pool, i, minIter, diversityCutoff)) {
+      cat("number of iterations to achieve converge is", i, "\n")
+      break
+    }
+  }
+  majorChromo <- getMajorChromo(pool)
+  cat("Variable selected are", colnames(X)[majorChromo], "\n")
+  cat(majorChromo, "\n")
+  return(majorChromo)
+
 }
 
 #test data
@@ -135,12 +138,9 @@ y <- 3 * x1 + x3 + 2 * x4 + rnorm(100, 0, 0.1)
 lm(cbind(y, X))
 glm(cbind(y, X), family = "gaussian")
 
-for (i in 1:10) {
-  select(X,y)
+for (i in 1:20) {
+  select(X, y, maxMutationRate = 0.05)
 }
-
-
-
 
 
 
