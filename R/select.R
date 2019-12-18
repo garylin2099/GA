@@ -63,28 +63,38 @@ select <- function(X,
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
   pool <- init(poolSize, chromoSize)
+  objValEachIter <- data.frame(
+    iter = rep(NA, poolSize * maxIter),
+    objectiveValue = rep(NA, poolSize * maxIter)
+  ) # here
   for (i in 1:maxIter) {
     objVal <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
     fitness <- getFitness(objVal)
+    # record objective values (by default AIC) of each generation
+    objValEachIter[((i - 1) * poolSize + 1):(i * poolSize),] <- cbind(rep(i, poolSize), objVal)
     pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
       cat("number of iterations to achieve converge is", i, "\n")
       break
     }
   }
+  objValEachIter <- objValEachIter[!is.na(objValEachIter$iter),]
+  objValue <- objValEachIter$objectiveValue
+  plot(objValEachIter$iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))), # we add perturbation to help visualization
+       main = "Objective Function Values (e.g AIC) of Each Generation",
+       xlab = "Generation i", ylab = "Objective Function Values (e.g. AIC)",
+       ylim = 1.5 * c(min(objValue), max(objValue)))
   majorChromo <- getMajorChromo(pool)
   resultModel <- glm(cbind(y, X[majorChromo]), family = regressionType)
   result <- list(
-    "selectedVariablesIndex" = which(majorChromo),
     "selectedVariables" = colnames(X)[majorChromo],
     "model" = resultModel,
     "ObjectiveValue" = objectiveFunction(resultModel),
     "convergence" = convergeCheck(pool, i, minIter, diversityCutoff),
-    "iterationCount" = i
+    "iterationCount" = i,
+    "objectiveValueRecord" = objValEachIter
   )
-  cat(result$selectedVariablesIndex)
   cat("Variable selected are", colnames(X)[majorChromo], "\n")
   return(result)
 
 }
-
