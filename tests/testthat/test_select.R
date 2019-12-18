@@ -31,26 +31,31 @@ test_that('test for invalid input',
 
 
 test_that('GA works',
-          {test <- GA::select(x, y)
+          {test <- GA::select(x, y, objValPlot = FALSE)
           expect_type(test, "list") #list
-          expect_type(GA::select(x,y)$model,
+          expect_type(GA::select(x,y,objValPlot = FALSE)$model,
                       "list")
 
           })
 test_that('GA works 2',
           {test <- select(X1, y1,
-                          maxMutationRate = 0.02, numCrossoverSplit = 3, tournamentSelection = FALSE)
+                          maxMutationRate = 0.02, numCrossoverSplit = 3,
+                          tournamentSelection = FALSE, objValPlot = FALSE)
           expect_type(test, "list") #list
-          expect_type(GA::select(X1,y1)$model,
+          expect_type(GA::select(X1,y1,objValPlot = FALSE)$model,
                       "list")
           expect_equal(GA::select(X1, y1,
                                   maxMutationRate = 0.02,
-                                  numCrossoverSplit = 3, tournamentSelection = FALSE)$convergence,TRUE)
+                                  numCrossoverSplit = 3,
+                                  tournamentSelection = FALSE,
+                                  objValPlot = FALSE)$convergence,TRUE)
           })
 
 test_that('Diverge',
           {expect_equal(GA::select(x, y, maxIter = 100,
-                                   mutationRate  = 0.8)$convergence, FALSE)
+                                   mutationRate  = 0.8,
+                                   objValPlot = FALSE)$convergence, FALSE)
             expect_equal(GA::select(x,y, maxIter = 100,
-                                    mutationRate = 0.8)$iterationCount, 100)
+                                    mutationRate = 0.8,
+                                    objValPlot = FALSE)$iterationCount, 100)
           })
