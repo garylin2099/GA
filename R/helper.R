@@ -1,9 +1,6 @@
 checkInputValidity <- function(X,y,poolSize,regressionType,objectiveFunction,oneParentRandom,
                                tournamentSelection,groupNum,numCrossoverSplit,mutationRate,
                                maxMutationRate,maxIter,minIter,diversityCutoff,nCores) {
-  if (is.matrix(X)) {
-    X <- as.data.frame(X)
-  }
   if (!is.data.frame(X)) stop("X must be a dataframe or matrix")
   if (!is.vector(y)) {
     if (!is.data.frame(y) || ncol(y) != 1) {
@@ -22,8 +19,11 @@ checkInputValidity <- function(X,y,poolSize,regressionType,objectiveFunction,one
   if (!tournamentSelection) {
     if (!is.null(groupNum)) stop("no need to specify groupNum argument if tournament selection is not adopted")
   } else {
-    if (is.null(groupNum)) {
-      groupNum <- floor(poolSize / 3) # set up default values, ensures at least three chromosomes in each group
+    if (!is.null(groupNum)) {
+      if (!is.numeric(groupNum)) stop("groupNum must be numeric")
+      if (groupNum < 2 || groupNum > poolSize / 2) stop("groupNum must be between 2 and poolSize / 2,
+                                                        otherwise each group will contain all chromosomes or
+                                                        only one chromosome, making tournaments meaningless")
     }
   }
   if (!is.numeric(numCrossoverSplit)) stop("numCrossOverSplit must be numeric")

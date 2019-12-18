@@ -61,9 +61,15 @@ select <- function(X,
                    diversityCutoff = max(0.05, 1 / poolSize),
                    nCores = 1) {
   # check if arguments are valid
+  if (is.matrix(X)) {
+    X <- as.data.frame(X)
+  }
   checkInputValidity(X,y,poolSize,regressionType,objectiveFunction,oneParentRandom,
                      tournamentSelection,groupNum,numCrossoverSplit,mutationRate,
                      maxMutationRate,maxIter,minIter,diversityCutoff,nCores)
+  if (tournamentSelection && is.null(groupNum)) {
+    groupNum <- floor(poolSize / 3) # set up default values, ensures at least three chromosomes in each group
+  }
 
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
