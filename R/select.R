@@ -60,6 +60,20 @@ select <- function(X,
                    oneParentRandom = FALSE,
                    diversityCutoff = max(0.05, 1 / poolSize),
                    nCores = 1) {
+  # check if arguments are valid
+  if (is.matrix(X)) {
+    X <- as.data.frame(X)
+  }
+  if (!is.data.frame(X)) stop("X must be a dataframe or matrix")
+  if (!is.vector(y)) {
+    if (!is.data.frame(y) || ncol(y) != 1) {
+      stop("y must be a vector or a dataframe of just one column")
+    }
+  }
+
+
+
+
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
   pool <- init(poolSize, chromoSize)
