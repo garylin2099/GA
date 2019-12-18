@@ -198,7 +198,7 @@ select <- function(X,
   }
   objValEachIter <- objValEachIter[!is.na(objValEachIter$iter),]
   objValue <- objValEachIter$objectiveValue
-  plot(objValEachIter$iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))),
+  plot(objValEachIter$iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))), # we add perturbation to help visualization
        main = "Objective Function Values (e.g AIC) of Each Generation",
        xlab = "Generation i", ylab = "Objective Function Values (e.g. AIC)",
        ylim = 1.5 * c(min(objValue), max(objValue)))
