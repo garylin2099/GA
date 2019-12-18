@@ -35,8 +35,8 @@
 #' x8 <- rnorm(100, -9, 1)
 #' X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
 #' y <- x1 + x3 + x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
-#' select(X, y)
-#' select(X, y, tournamentSelection = TRUE, numCrossoverSplit = 2, maxMutationRate = 0.03)
+#' result1 <- select(X, y)
+#' result2 <- select(X, y, tournamentSelection = TRUE, numCrossoverSplit = 2, maxMutationRate = 0.05)
 
 #' @export
 select <- function(X,
@@ -85,7 +85,7 @@ select <- function(X,
     pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit,
                        mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
-      cat("number of iterations to achieve converge is", i, "\n")
+      cat("number of iterations to achieve convergence is", i, "\n")
       break
     }
   }
