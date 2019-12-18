@@ -25,6 +25,10 @@ checkInputValidity <- function(X,y,poolSize,regressionType,objectiveFunction,one
       if (groupNum < 2 || groupNum > poolSize / 2) stop("groupNum must be between 2 and poolSize / 2,
                                                         otherwise each group will contain all chromosomes or
                                                         only one chromosome, making tournaments meaningless")
+    } else {
+      if (poolSize < 2 * 2) {
+        stop("poolSize too small to guarantee at least two tournament groups with two candidates per group")
+      }
     }
   }
   if (!is.numeric(numCrossoverSplit)) stop("numCrossOverSplit must be numeric")

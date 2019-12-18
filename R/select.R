@@ -64,7 +64,7 @@ select <- function(X,
                      maxMutationRate,maxIter,minIter,diversityCutoff,nCores)
   # individual default value setup
   if (tournamentSelection && is.null(groupNum)) {
-    groupNum <- floor(poolSize / 3) # set up default values, ensures at least three chromosomes in each group
+    groupNum <- floor(poolSize / 2) # by default partition pool into groups of two
   }
 
   # necessary setup including initialization
