@@ -62,6 +62,12 @@ convergeCheck <- function(pool, currentIterCount, minIter, diversityCutoff) {
   }
 }
 
+plotObjVal <- function(iter, objValue) {
+  plot(iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))), # we add perturbation to help visualization
+       main = "Objective Function Values (e.g. AIC) w Perturbation",
+       xlab = "Generation i", ylab = "Objective Function Values",
+       ylim = 1.5 * c(min(objValue), max(objValue)))
+}
 
 getMajorChromo <- function(pool) {
   uniqueChromo <- unique(pool)

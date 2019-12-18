@@ -24,18 +24,19 @@
 #'
 #'
 #' @examples
-#'x1 <- rnorm(100, 2, 1)
-#'x2 <- rnorm(100, 5, 1)
-#'x3 <- rnorm(100, -1, 1)
-#'x4 <- rnorm(100, 18, 1)
-#'x5 <- rnorm(100, -7, 1)
-#'x6 <- rnorm(100, -20, 1)
-#'x7 <- rnorm(100, 15, 1)
-#'x8 <- rnorm(100, -9, 1)
-#'X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
-#'y <- x1 + x3 + x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
-#'result <- select(X, y, tournamentSelection = FALSE, maxMutationRate = 0.03, numCrossoverSplit = 2)
-#'result$selectedVariables
+#' set.seed(2019)
+#' x1 <- rnorm(100, 2, 1)
+#' x2 <- rnorm(100, 5, 1)
+#' x3 <- rnorm(100, -1, 1)
+#' x4 <- rnorm(100, 18, 1)
+#' x5 <- rnorm(100, -7, 1)
+#' x6 <- rnorm(100, -20, 1)
+#' x7 <- rnorm(100, 15, 1)
+#' x8 <- rnorm(100, -9, 1)
+#' X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
+#' y <- x1 + x3 + x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
+#' select(X, y)
+#' select(X, y, tournamentSelection = TRUE, numCrossoverSplit = 2, maxMutationRate = 0.03)
 
 #' @export
 select <- function(X,
@@ -53,17 +54,20 @@ select <- function(X,
                    minIter = round(maxIter / 10),
                    diversityCutoff = max(0.05, 1 / poolSize),
                    nCores = 1) {
-  # check if arguments are valid
+  # individual validity check
   if (is.matrix(X)) {
     X <- as.data.frame(X)
   }
+  # main part of the validity checks
   checkInputValidity(X,y,poolSize,regressionType,objectiveFunction,oneParentRandom,
                      tournamentSelection,groupNum,numCrossoverSplit,mutationRate,
                      maxMutationRate,maxIter,minIter,diversityCutoff,nCores)
+  # individual default value setup
   if (tournamentSelection && is.null(groupNum)) {
     groupNum <- floor(poolSize / 3) # set up default values, ensures at least three chromosomes in each group
   }
 
+  # necessary setup including initialization
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
   pool <- init(poolSize, chromoSize)
@@ -71,24 +75,25 @@ select <- function(X,
     iter = rep(NA, poolSize * maxIter),
     objectiveValue = rep(NA, poolSize * maxIter)
   )
+  # select, crossover, and mutate to update pool (generation) in each iteration, keep updating it
+  # until convergence or maximum number of iteration is hit
   for (i in 1:maxIter) {
     objVal <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
     fitness <- getFitness(objVal)
-    # record objective values (by default AIC) of each generation
+    # a side step, record objective values of each generation for plotting
     objValEachIter[((i - 1) * poolSize + 1):(i * poolSize),] <- cbind(rep(i, poolSize), objVal)
-    pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
+    pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit,
+                       mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
       cat("number of iterations to achieve converge is", i, "\n")
       break
     }
   }
+  # plotting objective function values against number of iteration
   objValEachIter <- objValEachIter[!is.na(objValEachIter$iter),]
-  objValue <- objValEachIter$objectiveValue
-  plot(objValEachIter$iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))), # we add perturbation to help visualization
-       main = "Objective Function Values (e.g. AIC) w Perturbation",
-       xlab = "Generation i", ylab = "Objective Function Values",
-       ylim = 1.5 * c(min(objValue), max(objValue)))
-  majorChromo <- getMajorChromo(pool)
+  plotObjVal(objValEachIter$iter, objValEachIter$objectiveValue)
+  # generate final result
+  majorChromo <- getMajorChromo(pool) # find the chromosome type that dominates the final pool
   resultModel <- glm(cbind(y, X[majorChromo]), family = regressionType)
   result <- list(
     "selectedVariables" = colnames(X)[majorChromo],
