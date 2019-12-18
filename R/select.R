@@ -7,7 +7,7 @@ init <- function(poolSize, chromSize) {
 }
 
 
-getObjective <- function(X, y, pool, objectiveFunction, regressionType) {
+getObjective <- function(X, y, pool, objectiveFunction, regressionType, nCores) {
   getObjVal <- function(chromo) {
     # safety check, if all genes of this chromosome are FALSE, then regress y on an constant
     if (sum(chromo) == 0) {
@@ -17,7 +17,12 @@ getObjective <- function(X, y, pool, objectiveFunction, regressionType) {
     }
     return(objectiveFunction(model))
   }
-  return(apply(pool, 1, getObjVal))
+  if (nCores == 1) {
+    return(apply(pool, 1, getObjVal))
+  } else {
+    return(future.apply::future_apply(pool, 1, getObjVal, future.scheduling = nCores))
+  }
+
 }
 
 getFitness <- function(objectiveVal) {
@@ -171,12 +176,13 @@ select <- function(X,
                    minIter = maxIter / 10,
                    regressionType = "gaussian",
                    oneParentRandom = FALSE,
-                   diversityCutoff = max(0.05, 1 / poolSize)) {
+                   diversityCutoff = max(0.05, 1 / poolSize),
+                   nCores = 1) {
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
   pool <- init(poolSize, chromoSize)
   for (i in 1:maxIter) {
-    objVal <- getObjective(X, y, pool, objectiveFunction, regressionType)
+    objVal <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
     fitness <- getFitness(objVal)
     pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
