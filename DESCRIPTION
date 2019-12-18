@@ -1,11 +1,15 @@
 Package: GA
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Genetic Algorithm for Variable Selection in Regression
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Authors: Stephanie Lin, Huirong Yang, Yizhang Lin
+Maintainer: Yizhang Lin <linyizh@berkeley.edu>
+Description: An implementation of genetic algorithms for variable selection in linear regression and generalized linear models.
 Encoding: UTF-8
 LazyData: true
+Imports: parallel,
+    graphics,
+    stats
+RoxygenNote: 7.0.2
+Suggests: 
+    testthat
