@@ -1,5 +1,5 @@
 rm(list = ls())
-set.seed(201912)
+set.seed(20191)
 
 
 init <- function(poolSize, chromSize) {
@@ -76,6 +76,40 @@ rankSelect <- function(pool, fitness, oneParentRandom, numCrossoverSplit) {
   return(childVector)
 }
 
+tournamentSelect <- function(pool, fitness, numCrossoverSplit, groupNum) {
+  poolSize <- nrow(pool)
+  chromoSize <- ncol(pool)
+  winners <- matrix(rep(NA, poolSize * chromoSize), nrow = poolSize)
+  winnerCounter <- 1
+  while (winnerCounter <= poolSize) {
+    groupSize <- floor(poolSize / groupNum)
+    groupAssignment <- sample(1:poolSize, groupNum * groupSize)
+    for (i in 1:groupNum) {
+      indexInPool <- groupAssignment[((i - 1) * groupSize + 1):(i * groupSize)]
+      maxIndexInPool <- indexInPool[which.max(fitness[indexInPool])]
+      winners[winnerCounter,] <- pool[maxIndexInPool,]
+      winnerCounter = winnerCounter + 1
+      if (winnerCounter > poolSize) {
+        break
+      }
+    }
+  }
+  childVector <- rep(NA, poolSize*chromoSize)
+  childCount <- 0
+  pairAssignment <- sample(1:poolSize, poolSize)
+  while(childCount < poolSize) {
+    parents <- winners[pairAssignment[(childCount+1):(childCount+2)],]
+    if (numCrossoverSplit == 1) {
+      childs <- crossover(parents)
+    } else {
+      childs <- multipleCrossover(parents, numCrossoverSplit)
+    }
+    childVector[(childCount*chromoSize) + 1:(2*chromoSize)] <- childs
+    childCount = childCount + 2
+  }
+  return(childVector)
+}
+
 currMutationRate <- function(mutationRate, maxMutationRate, iterCounter, maxIter) {
   return(mutationRate + (iterCounter - 1) / maxIter * (maxMutationRate - mutationRate))
 }
@@ -86,11 +120,16 @@ mutate <- function(childVector, mutationRate) {
   return(childVector)
 }
 
-updatePool <- function(pool, fitness, oneParentRandom, numCrossoverSplit,
+updatePool <- function(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit,
                        mutationRate, maxMutationRate, iterCounter, maxIter) {
   poolSize <- nrow(pool)
   chromoSize <- ncol(pool)
-  childVector <- rankSelect(pool, fitness, oneParentRandom, numCrossoverSplit)
+  if (!tournamentSelection) {
+    childVector <- rankSelect(pool, fitness, oneParentRandom, numCrossoverSplit)
+  } else {
+    childVector <- tournamentSelect(pool, fitness, numCrossoverSplit, groupNum)
+  }
+
   if (is.null(maxMutationRate)) {
     childVector <- mutate(childVector, mutationRate)
   } else {
@@ -123,6 +162,8 @@ select <- function(X,
                    y,
                    poolSize = round(2 * ncol(X)),
                    objectiveFunction = stats::AIC,
+                   tournamentSelection = FALSE,
+                   groupNum = floor(poolSize / 3), # gurantees that each group has at least three chromosomes
                    numCrossoverSplit = 1, # need to be smaller than chromosome size
                    mutationRate = 0.01,
                    maxMutationRate = NULL,
@@ -137,7 +178,7 @@ select <- function(X,
   for (i in 1:maxIter) {
     objVal <- getObjective(X, y, pool, objectiveFunction, regressionType)
     fitness <- getFitness(objVal)
-    pool <- updatePool(pool, fitness, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
+    pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
       cat("number of iterations to achieve converge is", i, "\n")
       break
@@ -166,7 +207,7 @@ lm(cbind(y, X))
 glm(cbind(y, X), family = "gaussian")
 
 for (i in 1:20) {
-  select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3)
+  select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3, tournamentSelection = FALSE)
 }
 
 
@@ -175,7 +216,7 @@ for (i in 1:20) {
 # testing code
 pool <- init(round(2*ncol(X)), ncol(X))
 pool
-obj1 <- getObjective(X, y, pool, "gaussian")
+obj1 <- getObjective(X, y, pool, objectiveFunction = stats::AIC, regressionType = "gaussian")
 obj2 <- getObjective(X, y, pool, "poisson")
 fitness <- getFitness(obj1)
 
