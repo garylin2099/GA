@@ -20,6 +20,7 @@
 #' @param maxIter maximum number of iterations of updating the generation. Default is 100.
 #' @param minIter minimum number of iterations, specified to reduce the chance of pre-mature convergence. Default is one fifth of the maxIter
 #' @param diversityCutoff the cutoff of diversity level for claiming convergence and stoping the iteration, where diversity level is defined as the number of unique chromosomes in a pool devided by the pool size. User can use a non-positive value to avoid convergence check. Default is the larger one between 0.05 and 1 / poolSize.
+#' @param objValPlot a logical indicating whether to plot objective function values over generations. Default is true.
 #' @param nCores number of cores to use in evaluating the objective function value for each chromosome. If value is greater than 1, the evaluation is executed in parallel. Default is 1.
 #'
 #'
@@ -53,6 +54,7 @@ select <- function(X,
                    maxIter = 100,
                    minIter = round(maxIter / 10),
                    diversityCutoff = max(0.05, 1 / poolSize),
+                   objValPlot = TRUE,
                    nCores = 1) {
   # individual validity check
   if (is.matrix(X)) {
@@ -91,7 +93,9 @@ select <- function(X,
   }
   # plotting objective function values against number of iteration
   objValEachIter <- objValEachIter[!is.na(objValEachIter$iter),]
-  plotObjVal(objValEachIter$iter, objValEachIter$objectiveValue)
+  if (objValPlot) {
+    plotObjVal(objValEachIter$iter, objValEachIter$objectiveValue)
+  }
   # generate final result
   majorChromo <- getMajorChromo(pool) # find the chromosome type that dominates the final pool
   resultModel <- glm(cbind(y, X[majorChromo]), family = regressionType)
