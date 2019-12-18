@@ -48,31 +48,22 @@
 select <- function(X,
                    y,
                    poolSize = round(2 * ncol(X)),
+                   regressionType = "gaussian",
                    objectiveFunction = stats::AIC,
+                   oneParentRandom = FALSE,
                    tournamentSelection = FALSE,
-                   groupNum = floor(poolSize / 3), # gurantees that each group has at least three chromosomes
+                   groupNum = NULL,
                    numCrossoverSplit = 1, # need to be smaller than chromosome size
                    mutationRate = 0.01,
                    maxMutationRate = NULL,
                    maxIter = 100,
-                   minIter = maxIter / 10,
-                   regressionType = "gaussian",
-                   oneParentRandom = FALSE,
+                   minIter = round(maxIter / 10),
                    diversityCutoff = max(0.05, 1 / poolSize),
                    nCores = 1) {
   # check if arguments are valid
-  if (is.matrix(X)) {
-    X <- as.data.frame(X)
-  }
-  if (!is.data.frame(X)) stop("X must be a dataframe or matrix")
-  if (!is.vector(y)) {
-    if (!is.data.frame(y) || ncol(y) != 1) {
-      stop("y must be a vector or a dataframe of just one column")
-    }
-  }
-
-
-
+  checkInputValidity(X,y,poolSize,regressionType,objectiveFunction,oneParentRandom,
+                     tournamentSelection,groupNum,numCrossoverSplit,mutationRate,
+                     maxMutationRate,maxIter,minIter,diversityCutoff,nCores)
 
   allData <- cbind(y, X)
   chromoSize <- ncol(X)
@@ -95,8 +86,8 @@ select <- function(X,
   objValEachIter <- objValEachIter[!is.na(objValEachIter$iter),]
   objValue <- objValEachIter$objectiveValue
   plot(objValEachIter$iter, objValue + runif(length(objValue), -0.2 * min(abs(objValue)), 0.2 * min(abs(objValue))), # we add perturbation to help visualization
-       main = "Objective Function Values (e.g AIC) of Each Generation",
-       xlab = "Generation i", ylab = "Objective Function Values (e.g. AIC)",
+       main = "Objective Function Values (e.g. AIC) w Perturbation",
+       xlab = "Generation i", ylab = "Objective Function Values",
        ylim = 1.5 * c(min(objValue), max(objValue)))
   majorChromo <- getMajorChromo(pool)
   resultModel <- glm(cbind(y, X[majorChromo]), family = regressionType)
