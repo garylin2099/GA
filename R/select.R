@@ -34,7 +34,24 @@ crossover <- function(parents) {
   return(c(firstChild, secondChild))
 }
 
-rankSelect <- function(pool, fitness, oneParentRandom) {
+multipleCrossover <- function(parents, numSplit) {
+  chromoSize <- ncol(parents)
+  # a splitIndex of value i means the split point is before the ith gene
+  splitIndex <- sample(2:chromoSize, numSplit)
+  # manually append an index to facilitate assigning values to the last section of the child chromosome
+  splitIndex <- c(sort(splitIndex), chromoSize + 1)
+  firstChild <- rep(NA, chromoSize)
+  secondChild <- rep(NA, chromoSize)
+  previousSplitIndex <- 1
+  for (i in 1:(numSplit + 1)) {
+    firstChild[previousSplitIndex:(splitIndex[i]-1)] <- parents[2 - i %% 2, previousSplitIndex:(splitIndex[i]-1)]
+    secondChild[previousSplitIndex:(splitIndex[i]-1)] <- parents[1 + i %% 2, previousSplitIndex:(splitIndex[i]-1)]
+    previousSplitIndex <- splitIndex[i]
+  }
+  return(c(firstChild, secondChild))
+}
+
+rankSelect <- function(pool, fitness, oneParentRandom, numCrossoverSplit) {
   poolSize <- nrow(pool)
   chromoSize <- ncol(pool)
   childVector <- rep(NA, poolSize*chromoSize)
@@ -48,7 +65,11 @@ rankSelect <- function(pool, fitness, oneParentRandom) {
       # select both parents with probability equal to their fitness
       parents <- pool[sample(1:poolSize, 2, prob = fitness),]
     }
-    childs <- crossover(parents)
+    if (numCrossoverSplit == 1) {
+      childs <- crossover(parents)
+    } else {
+      childs <- multipleCrossover(parents, numCrossoverSplit)
+    }
     childVector[(childCount*chromoSize) + 1:(2*chromoSize)] <- childs
     childCount = childCount + 2
   }
@@ -65,10 +86,11 @@ mutate <- function(childVector, mutationRate) {
   return(childVector)
 }
 
-updatePool <- function(pool, fitness, oneParentRandom, mutationRate, maxMutationRate, iterCounter, maxIter) {
+updatePool <- function(pool, fitness, oneParentRandom, numCrossoverSplit,
+                       mutationRate, maxMutationRate, iterCounter, maxIter) {
   poolSize <- nrow(pool)
   chromoSize <- ncol(pool)
-  childVector <- rankSelect(pool, fitness, oneParentRandom)
+  childVector <- rankSelect(pool, fitness, oneParentRandom, numCrossoverSplit)
   if (is.null(maxMutationRate)) {
     childVector <- mutate(childVector, mutationRate)
   } else {
@@ -101,10 +123,11 @@ select <- function(X,
                    y,
                    poolSize = round(2 * ncol(X)),
                    objectiveFunction = stats::AIC,
+                   numCrossoverSplit = 1, # need to be smaller than chromosome size
                    mutationRate = 0.01,
                    maxMutationRate = NULL,
                    maxIter = 100,
-                   minIter = maxIter / 3,
+                   minIter = maxIter / 10,
                    regressionType = "gaussian",
                    oneParentRandom = FALSE,
                    diversityCutoff = max(0.05, 1 / poolSize)) {
@@ -114,12 +137,13 @@ select <- function(X,
   for (i in 1:maxIter) {
     objVal <- getObjective(X, y, pool, objectiveFunction, regressionType)
     fitness <- getFitness(objVal)
-    pool <- updatePool(pool, fitness, oneParentRandom, mutationRate, maxMutationRate, i, maxIter)
+    pool <- updatePool(pool, fitness, oneParentRandom, numCrossoverSplit, mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
       cat("number of iterations to achieve converge is", i, "\n")
       break
     }
   }
+  cat("iteration limit reached\n")
   majorChromo <- getMajorChromo(pool)
   cat("Variable selected are", colnames(X)[majorChromo], "\n")
   cat(majorChromo, "\n")
@@ -133,20 +157,23 @@ x2 <- rnorm(100, 5, 1)
 x3 <- rnorm(100, -1, 1)
 x4 <- rnorm(100, 18, 1)
 x5 <- rnorm(100, -7, 1)
-X <- data.frame(x1, x2, x3, x4, x5)
-y <- 3 * x1 + x3 + 2 * x4 + rnorm(100, 0, 0.1)
+x6 <- rnorm(100, -20, 1)
+x7 <- rnorm(100, 15, 1)
+x8 <- rnorm(100, -9, 1)
+X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
+y <- 3 * x1 + x3 + 2 * x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
 lm(cbind(y, X))
 glm(cbind(y, X), family = "gaussian")
 
 for (i in 1:20) {
-  select(X, y, maxMutationRate = 0.05)
+  select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3)
 }
 
 
 
 
 # testing code
-pool <- init(round(1.5*ncol(X)), ncol(X))
+pool <- init(round(2*ncol(X)), ncol(X))
 pool
 obj1 <- getObjective(X, y, pool, "gaussian")
 obj2 <- getObjective(X, y, pool, "poisson")
@@ -162,3 +189,4 @@ childrankSelect(pool, fitness1, oneParentRandom)
 
 pool1 <- updatePool(pool, fitness)
 
+multipleCrossover(pool[1:2,])
