@@ -190,17 +190,11 @@ select <- function(X,
       break
     }
   }
+  cat("iteration limit reached\n")
   majorChromo <- getMajorChromo(pool)
-  resultModel <- glm(cbind(y, X[majorChromo]), family = regressionType)
-  result <- list(
-    "selectedVariables" = colnames(X)[majorChromo],
-    "model" = resultModel,
-    "ObjectiveValue" = objectiveFunction(resultModel),
-    "convergence" = convergeCheck(pool, i, minIter, diversityCutoff),
-    "iterationCount" = i
-  )
   cat("Variable selected are", colnames(X)[majorChromo], "\n")
-  return(result)
+  cat(majorChromo, "\n")
+  return(majorChromo)
 
 }
 
@@ -218,10 +212,11 @@ y <- 3 * x1 + x3 + 2 * x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
 lm(cbind(y, X))
 glm(cbind(y, X), family = "gaussian")
 
-for (i in 1:1) {
-  result <- select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3, tournamentSelection = FALSE)
+for (i in 1:20) {
+  select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3, tournamentSelection = FALSE)
 }
-result
+
+
 
 
 # testing code
