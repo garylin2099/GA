@@ -6,22 +6,22 @@
 #'
 #' 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization (italicize). Chapter 3 of Computational Statistics (italicize).
 #'
-#' @param Y vector of response variable
-#' @param X a matrix or dataframe of predictor variables
-#' @param family a character string describing the error distribution and link function to be used in the model. Default is gaussian.
-#' @param objective_function function for computing objective. Default is \code{\link{AIC}}. User can specify custom function.
-#' @param crossover_parents_function a function for crossover between mate pairs. User can specify custom function. Default is \code{\link{crossover_parents}}.
-#' @param crossover_method a character string describing crossover method. Default is multi-point crossover. See \code{\link{crossover_parents}}.
-#' @param pCrossover a numeric value for he probability of crossover for each mate pair.
-#' @param start_chrom a numeric value for the  size of the popuation of chromosomes. Default is \code{choose(C, 2)} \eqn{\le 200}, where C is number of predictors.
-#' @param mutation_rate a numeric value for rate of mutation. Default is \eqn{1 / (P \sqrt C)}, where P is number of chromosomes, and C is number of predictors.
-#' @param converge a logical value indicating whether algorithm should attempt to converge or run for specified number of iterations. If \code{TRUE}, convergence will occur when highest ranked chromosomes is equal to mean of top 50\% in current and previous generation.
-#' @param tol a numeric value indicating convergence tolerance. Default is 1e-4.
-#' @param iter an integer specifying maximum number of generations algorithm will produce. Default is 100
-#' @param minimize a logical value indicating whether optimize should be minimized (TRUE) or maximized (FALSE).
-#' @param nCores an integer indicating number of parallel processes to run when evaluating fitness. Default is 1, or no paralleization. See \code{\link{evaluate_fitness}}.
+#' @param X design matrix, in a dataframe or matrix
+#' @param y a vector of responses
+#' @param poolSize the size of the chromosome pool for any generation, i.e. P. Default is 2C where C, or chromosome length, is the number of candidate covariates
+#' @param regressionType a character string defining the distribution family. Default is gaussian.
+#' @param objectiveFunction accepts a function object to specify objective function. If provided by user, the function must be able to take glm object as input and return a numeric scalar. Default is \code{\link{AIC}}.
+#' @param oneParentRandom a logical applying to rank-based selection. If TRUE, then we select one parent with the probability being its fitness score and the other randomly, otherwise, select both parents according to their fitness score. Default is FALSE.
+#' @param tournamentSelection a logical indicating whether to use tournament selection. If FALSE, rank-based selection is used. Default is FALSE.
+#' @param groupNum number of groups to be partitioned in each round of the tournament selection. Value must be between 2 and poolSize / 2 (inclusive) to ensure meaningful tournaments
+#' @param numCrossoverSplit number of crossover points.
+#' @param mutationRate constant mutation rate. Value must be between 0 and 1. Default is 0.01.
+#' @param maxMutationRate the mutation rate expected by the user when iteration limit is reached. If specified, then the mutation rate is linearly increasing in each iteration
+#' @param maxIter maximum number of iterations of updating the generation. Default is 100.
+#' @param minIter minimum number of iterations, specified to reduce the chance of pre-mature convergence. Default is one fifth of the maxIter
+#' @param diversityCutoff the cutoff of diversity level for claiming convergence and stoping the iteration, where diversity level is defined as the number of unique chromosomes in a pool devided by the pool size. User can use a non-positive value to avoid convergence check. Default is the larger one between 0.05 and 1 / poolSize.
+#' @param nCores number of cores to use in evaluating the objective function value for each chromosome. If value is greater than 1, the evaluation is executed in parallel. Default is 1.
 #'
-#'If user wants to use custom objective_function, they must use a function that is compatible with \code{\link{lm}} or \code{\link{glm}} fitted objects which output a numberic value of length 1.
 #'
 #' @examples
 #'x1 <- rnorm(100, 2, 1)
@@ -34,15 +34,8 @@
 #'x8 <- rnorm(100, -9, 1)
 #'X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
 #'y <- x1 + x3 + x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
-#'lm(cbind(y, X))
-#'glm(cbind(y, X), family = "gaussian")
-
-#'for (i in 1:1) {
-#'  result <- select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3, tournamentSelection = FALSE)
-#'}
-#'result
-
-
+#'result <- select(X, y, tournamentSelection = FALSE, maxMutationRate = 0.03, numCrossoverSplit = 2)
+#'result$selectedVariables
 
 #' @export
 select <- function(X,
@@ -77,7 +70,7 @@ select <- function(X,
   objValEachIter <- data.frame(
     iter = rep(NA, poolSize * maxIter),
     objectiveValue = rep(NA, poolSize * maxIter)
-  ) # here
+  )
   for (i in 1:maxIter) {
     objVal <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
     fitness <- getFitness(objVal)

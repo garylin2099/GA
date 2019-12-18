@@ -15,6 +15,7 @@ checkInputValidity <- function(X,y,poolSize,regressionType,objectiveFunction,one
   }
   if (!is.function(objectiveFunction)) stop("objectiveFunction must be a function")
   if (!is.logical(oneParentRandom)) stop("oneParentRandom argument must be a logical variable")
+  if (oneParentRandom && tournamentSelection) stop("no need to specify oneParentRandom when using tournament selection")
   if (!is.logical(tournamentSelection)) stop("tournamentSelection argument must be a logical variable")
   if (!tournamentSelection) {
     if (!is.null(groupNum)) stop("no need to specify groupNum argument if tournament selection is not adopted")
