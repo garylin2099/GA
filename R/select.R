@@ -74,8 +74,8 @@ select <- function(X,
   chromoSize <- ncol(X)
   pool <- init(poolSize, chromoSize)
   objValEachIter <- data.frame(
-    iter = rep(NA, poolSize * maxIter),
-    objectiveValue = rep(NA, poolSize * maxIter)
+    iter = rep(NA, poolSize * (maxIter + 1)),
+    objectiveValue = rep(NA, poolSize * (maxIter + 1))
   )
   # select, crossover, and mutate to update pool (generation) in each iteration, keep updating it
   # until convergence or maximum number of iteration is hit
@@ -87,6 +87,8 @@ select <- function(X,
     pool <- updatePool(pool, fitness, tournamentSelection, groupNum, oneParentRandom, numCrossoverSplit,
                        mutationRate, maxMutationRate, i, maxIter)
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
+      objValConverge <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
+      objValEachIter[(i * poolSize + 1):((i + 1) * poolSize),] <- cbind(rep(i+1, poolSize), objValConverge)
       cat("number of iterations to achieve convergence is", i, "\n")
       break
     }

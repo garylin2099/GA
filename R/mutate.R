@@ -1,4 +1,4 @@
-#' Single Crossover
+#' Mutating Genes
 #'
 #' \code{crossover} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
 #'
