@@ -52,7 +52,7 @@ select <- function(X,
                    mutationRate = 0.01,
                    maxMutationRate = NULL,
                    maxIter = 100,
-                   minIter = round(maxIter / 10),
+                   minIter = round(maxIter / 3),
                    diversityCutoff = max(0.05, 1 / poolSize),
                    objValPlot = TRUE,
                    nCores = 1) {
