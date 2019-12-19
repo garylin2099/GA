@@ -8,60 +8,63 @@ select(
   X,
   y,
   poolSize = round(2 * ncol(X)),
+  regressionType = "gaussian",
   objectiveFunction = stats::AIC,
+  oneParentRandom = FALSE,
   tournamentSelection = FALSE,
-  groupNum = floor(poolSize/3),
+  groupNum = NULL,
   numCrossoverSplit = 1,
   mutationRate = 0.01,
   maxMutationRate = NULL,
   maxIter = 100,
-  minIter = maxIter/10,
-  regressionType = "gaussian",
-  oneParentRandom = FALSE,
+  minIter = round(maxIter/10),
   diversityCutoff = max(0.05, 1/poolSize),
+  objValPlot = TRUE,
   nCores = 1
 )
 }
 \arguments{
-\item{X}{a matrix or dataframe of predictor variables}
+\item{X}{design matrix, in a dataframe or matrix}
 
-\item{nCores}{an integer indicating number of parallel processes to run when evaluating fitness. Default is 1, or no paralleization. See \code{\link{evaluate_fitness}}.
+\item{y}{a vector of responses}
 
-If user wants to use custom objective_function, they must use a function that is compatible with \code{\link{lm}} or \code{\link{glm}} fitted objects which output a numberic value of length 1.}
+\item{poolSize}{the size of the chromosome pool for any generation, i.e. P. Default is 2C where C, or chromosome length, is the number of candidate covariates}
 
-\item{Y}{vector of response variable}
+\item{regressionType}{a character string defining the distribution family. Default is gaussian.}
 
-\item{family}{a character string describing the error distribution and link function to be used in the model. Default is gaussian.}
+\item{objectiveFunction}{accepts a function object to specify objective function. If provided by user, the function must be able to take glm object as input and return a numeric scalar. Default is \code{\link{AIC}}.}
 
-\item{objective_function}{function for computing objective. Default is \code{\link{AIC}}. User can specify custom function.}
+\item{oneParentRandom}{a logical applying to rank-based selection. If TRUE, then we select one parent with the probability being its fitness score and the other randomly, otherwise, select both parents according to their fitness score. Default is FALSE.}
 
-\item{crossover_parents_function}{a function for crossover between mate pairs. User can specify custom function. Default is \code{\link{crossover_parents}}.}
+\item{tournamentSelection}{a logical indicating whether to use tournament selection. If FALSE, rank-based selection is used. Default is FALSE.}
 
-\item{crossover_method}{a character string describing crossover method. Default is multi-point crossover. See \code{\link{crossover_parents}}.}
+\item{groupNum}{number of groups to be partitioned in each round of the tournament selection. Value must be between 2 and poolSize / 2 (inclusive) to ensure meaningful tournaments}
 
-\item{pCrossover}{a numeric value for he probability of crossover for each mate pair.}
+\item{numCrossoverSplit}{number of crossover points.}
 
-\item{start_chrom}{a numeric value for the  size of the popuation of chromosomes. Default is \code{choose(C, 2)} \eqn{\le 200}, where C is number of predictors.}
+\item{mutationRate}{constant mutation rate. Value must be between 0 and 1. Default is 0.01.}
 
-\item{mutation_rate}{a numeric value for rate of mutation. Default is \eqn{1 / (P \sqrt C)}, where P is number of chromosomes, and C is number of predictors.}
+\item{maxMutationRate}{the mutation rate expected by the user when iteration limit is reached. If specified, then the mutation rate is linearly increasing in each iteration}
 
-\item{converge}{a logical value indicating whether algorithm should attempt to converge or run for specified number of iterations. If \code{TRUE}, convergence will occur when highest ranked chromosomes is equal to mean of top 50\% in current and previous generation.}
+\item{maxIter}{maximum number of iterations of updating the generation. Default is 100.}
 
-\item{tol}{a numeric value indicating convergence tolerance. Default is 1e-4.}
+\item{minIter}{minimum number of iterations, specified to reduce the chance of pre-mature convergence. Default is one fifth of the maxIter}
 
-\item{iter}{an integer specifying maximum number of generations algorithm will produce. Default is 100}
+\item{diversityCutoff}{the cutoff of diversity level for claiming convergence and stoping the iteration, where diversity level is defined as the number of unique chromosomes in a pool devided by the pool size. User can use a non-positive value to avoid convergence check. Default is the larger one between 0.05 and 1 / poolSize.}
 
-\item{minimize}{a logical value indicating whether optimize should be minimized (TRUE) or maximized (FALSE).}
+\item{objValPlot}{a logical indicating whether to plot objective function values over generations. Default is true.}
+
+\item{nCores}{number of cores to use in evaluating the objective function value for each chromosome. If value is greater than 1, the evaluation is executed in parallel. Default is 1.}
 }
 \description{
-select implements genetic algorithms for variable selection for GLMs by optimizing package or user specified objective functions such as AIC, BIC, and logloglikelihood.
-Uses functions: \code{\link{generate_founders}}, \code{\link{evaluate_fitness}}, and \code{\link{create_next_generation}}.
-Functions find optimal variables by using evolutationry biology concepts of natural selection, fitness, genetic crossover, and mutation. Founding generation of chromosomes is randomly generated and evaluated using an critieria such as AIC, BIC, or loglihood. Parents are selected by their fitness, and generate children chromosomes. As each generation breeds and produces new genreations, the algorithm moves towards the optimum.
+\code{select} is the main function of our genetic algorithms, it's a search heuristic that mimics evolution to find the best solution through variable selection.
+A population of randomly generated candidate solutions is initialized, the candidate solutions are then evaluated, and their fitness value is calculated based on AIC scores or other user specific objective functions. The populations then goes through an iterative process of selection, crossover, mutation to produce the next generation until convergence.
 }
 \details{
 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization (italicize). Chapter 3 of Computational Statistics (italicize).
 }
 \examples{
+set.seed(2019)
 x1 <- rnorm(100, 2, 1)
 x2 <- rnorm(100, 5, 1)
 x3 <- rnorm(100, -1, 1)
@@ -72,10 +75,6 @@ x7 <- rnorm(100, 15, 1)
 x8 <- rnorm(100, -9, 1)
 X <- data.frame(x1, x2, x3, x4, x5, x6, x7, x8)
 y <- x1 + x3 + x4 - 2 * x6 - x8 + rnorm(100, 0, 0.1)
-lm(cbind(y, X))
-glm(cbind(y, X), family = "gaussian")
-for (i in 1:1) {
- result <- select(X, y, maxMutationRate = 0.05, numCrossoverSplit = 3, tournamentSelection = FALSE)
-}
-result
+result1 <- select(X, y)
+result2 <- select(X, y, tournamentSelection = TRUE, numCrossoverSplit = 2, maxMutationRate = 0.05)
 }
