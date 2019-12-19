@@ -1,8 +1,8 @@
 #' Variable Selection using Genetic Algorithms
 #'
-#' select implements genetic algorithms for variable selection for GLMs by optimizing package or user specified objective functions such as AIC, BIC, and logloglikelihood.
-#' Uses functions: \code{\link{generate_founders}}, \code{\link{evaluate_fitness}}, and \code{\link{create_next_generation}}.
-#' Functions find optimal variables by using evolutationry biology concepts of natural selection, fitness, genetic crossover, and mutation. Founding generation of chromosomes is randomly generated and evaluated using an critieria such as AIC, BIC, or loglihood. Parents are selected by their fitness, and generate children chromosomes. As each generation breeds and produces new genreations, the algorithm moves towards the optimum.
+#' \code{select} is the main function of our genetic algorithms, it's a search heuristic that mimics evolution to find the best solution through variable selection and iteratively evalauting fitness score of solution candidates and updating generations until convergence.
+#' Functions in select find optimal variable inspired by the process of natural selectoin, where the functions initialize a population of randomly generated candidate solutions, the candidate solutions are then evaluated, and their fitness value is calculated based on AIC scores or other user specific objective functions. The populations then goes through an iterative process of selection, crossover, mutation to produce the next generation until convergence.
+#'
 #'
 #' 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization (italicize). Chapter 3 of Computational Statistics (italicize).
 #'
