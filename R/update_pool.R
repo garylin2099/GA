@@ -4,14 +4,14 @@
 #'
 #' @param pool a matrix of booleans representing the chromosome pools
 #' @param fitness a vector indicating the fitness score of each chromosome in the pool
-#' @param tournamentSelection a logical indicating whether to use tournament selection. If FALSE, rank-based selection is used. Default is FALSE.
+#' @param tournamentSelection a logical indicating whether to use tournament selection. If FALSE, rank-based selection is used.
 #' @param groupNum number of groups to be partitioned in each round of the tournament selection. Value must be between 2 and poolSize / 2 (inclusive) to ensure meaningful tournaments
-#' @param oneParentRandom a logical applying to rank-based selection. If TRUE, then we select one parent with the probability being its fitness score and the other randomly, otherwise, select both parents according to their fitness score. Default is FALSE.
+#' @param oneParentRandom a logical applying to rank-based selection. If TRUE, then we select one parent with the probability being its fitness score and the other randomly, otherwise, select both parents according to their fitness score.
 #' @param numCrossoverSplit number of crossover points.
-#' @param mutationRate constant mutation rate. Value must be between 0 and 1. Default is 0.01.
+#' @param mutationRate constant mutation rate. Value must be between 0 and 1.
 #' @param maxMutationRate the mutation rate expected by the user when iteration limit is reached. If specified, then the mutation rate is linearly increasing in each iteration
 #' @param iterCounter an integer specifying which iteration in the  the current update
-#' @param maxIter maximum number of iterations of updating the generation. Default is 100.
+#' @param maxIter maximum number of iterations of updating the generation.
 #'
 #' @export
 

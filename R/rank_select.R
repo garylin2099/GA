@@ -1,8 +1,12 @@
-#' Single Crossover
+#' Selecting Parents by Rank
 #'
-#' \code{crossover} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
+#' \code{rankSelect} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
 #'
-#' @param parents a 2 by C matrix of booleans, with each row representing a parent chromosome
+#'
+#' @param pool a matrix of booleans representing the chromosome pools
+#' @param fitness a vector indicating the fitness score of each chromosome in the pool
+#' @param oneParentRandom a logical applying to rank-based selection. If TRUE, then we select one parent with the probability being its fitness score and the other randomly, otherwise, select both parents according to their fitness score.
+#' @param numCrossoverSplit number of crossover points.
 #'
 #' @export
 

@@ -1,19 +1,23 @@
-#' Mutating Genes
+#' Computing Current Mutation Rate
 #'
-#' \code{crossover} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
+#' \code{currMutationRate} computes the mutation rate in the current iteration of the genetic algorithm, assuming mutation rate is variable
 #'
-#' @param parents a 2 by C matrix of booleans, with each row representing a parent chromosome
+#' @param mutationRate constant mutation rate. Value must be between 0 and 1.
+#' @param maxMutationRate the mutation rate expected by the user when iteration limit is reached. If specified, then the mutation rate is linearly increasing in each iteration.
+#' @param iterCounter an integer specifying which iteration in the  the current update
+#' @param maxIter maximum number of iterations of updating the generation.
 #'
 #' @export
 currMutationRate <- function(mutationRate, maxMutationRate, iterCounter, maxIter) {
   return(mutationRate + (iterCounter - 1) / maxIter * (maxMutationRate - mutationRate))
 }
 
-#' Single Crossover
+#' Mutating Genes
 #'
-#' \code{crossover} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
+#' \code{mutate} takes in a vector of genes and try mutating each of them independently with a mutation rate
 #'
-#' @param parents a 2 by C matrix of booleans, with each row representing a parent chromosome
+#' @param childVector a vector representing the genes of child chromosomes
+#' @param mutationRate mutation rate
 #'
 #' @export
 mutate <- function(childVector, mutationRate) {

@@ -5,9 +5,9 @@
 #' @param X design matrix, in a dataframe or matrix
 #' @param y a vector of responses
 #' @param pool a matrix of booleans representing the chromosome pools
-#' @param objectiveFunction accepts a function object to specify objective function. If provided by user, the function must be able to take glm object as input and return a numeric scalar. Default is \code{\link{AIC}}.
-#' @param regressionType a character string defining the distribution family. Default is gaussian.
-#' @param nCores number of cores to use in evaluating the objective function value for each chromosome. If value is greater than 1, the evaluation is executed in parallel. Default is 1.
+#' @param objectiveFunction accepts a function object to specify objective function. If provided by user, the function must be able to take glm object as input and return a numeric scalar.
+#' @param regressionType a character string defining the distribution family.
+#' @param nCores number of cores to use in evaluating the objective function value for each chromosome. If value is greater than 1, the evaluation is executed in parallel.
 #'
 #' @export
 getObjective <- function(X, y, pool, objectiveFunction, regressionType, nCores) {
