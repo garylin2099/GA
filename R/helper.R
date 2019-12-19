@@ -1,3 +1,7 @@
+###################
+# Helper  Functions
+###################
+
 checkInputValidity <- function(X,y,poolSize,regressionType,objectiveFunction,oneParentRandom,
                                tournamentSelection,groupNum,numCrossoverSplit,mutationRate,
                                maxMutationRate,maxIter,minIter,diversityCutoff,nCores) {

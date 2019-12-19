@@ -1,3 +1,10 @@
+#' Single Crossover
+#'
+#' \code{crossover} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
+#'
+#' @param parents a 2 by C matrix of booleans, with each row representing a parent chromosome
+#'
+#' @export
 crossover <- function(parents) {
   chromoSize <- ncol(parents)
   splitPoint <- sample(2:chromoSize, 1)
@@ -6,6 +13,14 @@ crossover <- function(parents) {
   return(c(firstChild, secondChild))
 }
 
+#' Multiple Crossover
+#'
+#' \code{multipleCrossover} accomplishes the process that parents crossover with multiple split points in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
+#'
+#' @param parents a 2 by C matrix of booleans, with each row representing a parent chromosome
+#' @param numSplit number of split points in a crossover
+#'
+#' @export
 multipleCrossover <- function(parents, numSplit) {
   chromoSize <- ncol(parents)
   # a splitIndex of value i means the split point is before the ith gene
