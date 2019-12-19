@@ -89,7 +89,7 @@ select <- function(X,
     if (convergeCheck(pool, i, minIter, diversityCutoff)) {
       objValConverge <- getObjective(X, y, pool, objectiveFunction, regressionType, nCores)
       objValEachIter[(i * poolSize + 1):((i + 1) * poolSize),] <- cbind(rep(i+1, poolSize), objValConverge)
-      cat("number of iterations to achieve convergence is", i, "\n")
+      cat("  number of iterations to achieve convergence is", i, "\n")
       break
     }
   }
