@@ -4,7 +4,7 @@
 #' A population of randomly generated candidate solutions is initialized, the candidate solutions are then evaluated, and their fitness value is calculated based on AIC scores or other user specific objective functions. The populations then goes through an iterative process of selection, crossover, mutation to produce the next generation until convergence.
 #'
 #'
-#' 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization (italicize). Chapter 3 of Computational Statistics (italicize).
+#' 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization. Chapter 3 of Computational Statistics.
 #'
 #' @param X design matrix, in a dataframe or matrix
 #' @param y a vector of responses
