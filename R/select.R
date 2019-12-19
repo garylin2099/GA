@@ -1,7 +1,7 @@
 #' Variable Selection using Genetic Algorithms
 #'
-#' \code{select} is the main function of our genetic algorithms, it's a search heuristic that mimics evolution to find the best solution through variable selection and iteratively evalauting fitness score of solution candidates and updating generations until convergence.
-#' Functions in select find optimal variable inspired by the process of natural selectoin, where the functions initialize a population of randomly generated candidate solutions, the candidate solutions are then evaluated, and their fitness value is calculated based on AIC scores or other user specific objective functions. The populations then goes through an iterative process of selection, crossover, mutation to produce the next generation until convergence.
+#' \code{select} is the main function of our genetic algorithms, it's a search heuristic that mimics evolution to find the best solution through variable selection.
+#' A population of randomly generated candidate solutions is initialized, the candidate solutions are then evaluated, and their fitness value is calculated based on AIC scores or other user specific objective functions. The populations then goes through an iterative process of selection, crossover, mutation to produce the next generation until convergence.
 #'
 #'
 #' 1. Geof H. Givens, Jennifer A. Hoeting (2013) Combinatorial Optimization (italicize). Chapter 3 of Computational Statistics (italicize).

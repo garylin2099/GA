@@ -19,12 +19,13 @@ updatePool <- function(pool, fitness, tournamentSelection, groupNum, oneParentRa
                        mutationRate, maxMutationRate, iterCounter, maxIter) {
   poolSize <- nrow(pool)
   chromoSize <- ncol(pool)
+  # selection and crossover
   if (!tournamentSelection) {
     childVector <- rankSelect(pool, fitness, oneParentRandom, numCrossoverSplit)
   } else {
     childVector <- tournamentSelect(pool, fitness, numCrossoverSplit, groupNum)
   }
-
+  # mutation
   if (is.null(maxMutationRate)) {
     childVector <- mutate(childVector, mutationRate)
   } else {

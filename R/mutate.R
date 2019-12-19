@@ -9,7 +9,7 @@
 #'
 #' @export
 currMutationRate <- function(mutationRate, maxMutationRate, iterCounter, maxIter) {
-  return(mutationRate + (iterCounter - 1) / maxIter * (maxMutationRate - mutationRate))
+  return(mutationRate + iterCounter / maxIter * (maxMutationRate - mutationRate))
 }
 
 #' Mutating Genes

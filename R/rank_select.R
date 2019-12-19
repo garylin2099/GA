@@ -1,7 +1,6 @@
 #' Selecting Parents by Rank
 #'
-#' \code{rankSelect} accomplishes the process that parents crossover with a single split point in their chromosomes. This function returns a vector of 2*C representing the genes of two children.
-#'
+#' \code{rankSelect} selects parents based on their fitness scores, which in turn depend on their rank in objective function values. In this operation, users have two choices in selecting parents as specified by the parameter "OneParenRandom". The default approach is to select each parent with probability equal to fitness, this approach is valid since the fitness score of all chromosome sums to one, indicating a selection probability. Another approach is to select a parent with probability proportional to fitness and to select the other parent completely at random.
 #'
 #' @param pool a matrix of booleans representing the chromosome pools
 #' @param fitness a vector indicating the fitness score of each chromosome in the pool
